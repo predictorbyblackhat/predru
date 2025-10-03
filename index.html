@@ -65,23 +65,28 @@
     }
 
     /* Mines board */
-    .mines-board { 
-      display:grid; 
-      grid-template-columns:repeat(5,40px); 
-      grid-template-rows:repeat(5,40px);
-      margin-top:1rem; 
-      border:2px solid #374151;
-    }
-    .cell { 
-      border:1px solid #374151; 
-      background:#1e293b; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      font-size:18px; 
-      color:#fff; 
-    }
-    .cell.mine { background:#ef4444 }
+    .mines-board {
+  display:grid;
+  grid-template-columns: repeat(5, 40px);
+  grid-template-rows: repeat(5, 40px);
+  border:2px solid #374151;
+  margin-top:12px;
+}
+.cell {
+  border:1px solid #374151;
+  background:#1e293b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  color:#fff;
+}
+.cell.mine {
+  background:#ff4d4d;
+}
+
+
+    
   </style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
@@ -126,11 +131,14 @@
         <div class="progress" id="progress"><div class="bar"></div></div>
 
         <!-- Окно сигналов -->
-        <div class="signal-box">
-          <div id="signalText" class="text-lg"></div>
-          <div id="signalValue" class="text-2xl font-bold mt-2"></div>
-          <div id="minesBoard" class="mines-board"></div>
-        </div>
+        <!-- Signals -->
+<div id="signalsBox" class="message-box" style="display:none; flex-direction:column;">
+  <div id="signalText">📡 Waiting for signals...</div>
+  <div id="signalValue" class=""></div>
+  <!-- Доска для Mines -->
+  <div id="minesBoard" class="mines-board" style="display:none;"></div>
+</div>
+
       </div>
     </section>
 
@@ -187,47 +195,51 @@
     }
 
     function generateMinesBoard(){
-      minesBoard.innerHTML = '';
-      const indices = Array.from({length:25}, (_,i)=>i);
-      const mines = [];
-      while(mines.length < 5){
-        const idx = Math.floor(Math.random()*indices.length);
-        mines.push(indices.splice(idx,1)[0]);
-      }
-      for(let i=0;i<25;i++){
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        if(mines.includes(i)){
-          cell.classList.add('mine');
-          cell.textContent = '💣';
-        }
-        minesBoard.appendChild(cell);
-      }
+  minesBoard.innerHTML = '';
+  minesBoard.style.display = 'grid';
+  const indices = Array.from({length:25}, (_,i)=>i);
+  const mines = [];
+  while(mines.length < 5){
+    const idx = Math.floor(Math.random()*indices.length);
+    mines.push(indices.splice(idx,1)[0]);
+  }
+  for(let i=0;i<25;i++){
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if(mines.includes(i)){
+      cell.classList.add('mine');
+      cell.textContent = '💣';
     }
+    minesBoard.appendChild(cell);
+  }
+}
 
     function generateSignal(game){
-      const now = new Date().toLocaleTimeString();
-      signalText.textContent = `🎯 [${now}] ${game}`;
+  const now = new Date().toLocaleTimeString();
+  signalText.textContent = `🎯 [${now}] ${game}`;
 
-      if(game === 'Mines'){
-        signalValue.textContent = 'Safe moves generated';
-        generateMinesBoard();
-        return;
-      }
+  if(game === 'Mines'){
+    signalValue.className = 'mines';
+    signalValue.textContent = 'Safe moves generated';
+    generateMinesBoard();
+    return;
+  }
 
-      if(game === 'Penalty'){
-        const directions = ["Top Left","Top Right","Center","Bottom Left","Bottom Right"];
-        const dir = directions[Math.floor(Math.random()*directions.length)];
-        signalValue.textContent = `Kick → ${dir}`;
-        minesBoard.innerHTML = '';
-        return;
-      }
+  if(game === 'Penalty'){
+    const directions = ["Top Left","Top Right","Center","Bottom Left","Bottom Right"];
+    const dir = directions[Math.floor(Math.random()*directions.length)];
+    signalValue.className = 'penalty';
+    signalValue.textContent = dir;
+    minesBoard.style.display = 'none'; // скрываем доску
+    return;
+  }
 
-      // Aviator
-      const multiplier = 'x' + randomMultiplier();
-      signalValue.textContent = multiplier;
-      minesBoard.innerHTML = '';
-    }
+  // Aviator
+  const multiplier = 'x' + randomMultiplier();
+  signalValue.className = 'aviator';
+  signalValue.textContent = multiplier;
+  minesBoard.style.display = 'none'; // скрываем доску
+}
 
     function startSignals(){
       generateSignal(selectedGame);
