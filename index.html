@@ -150,7 +150,7 @@
     });
 
     function randomMultiplier(){ 
-      return (Math.random() * (5 - 1.01) + 1.01).toFixed(2); 
+      return (Math.random() * (5 - 1.02) + 1.01).toFixed(2); 
     }
 
     function generateMinesBoard(){
@@ -177,7 +177,7 @@
       signalText.textContent = `🎯 [${now}] ${game}`;
 
       if(game === 'Mines'){
-        signalValue.textContent = 'Safe moves generated';
+        signalValue.textContent = '';
         generateMinesBoard();
         return;
       }
