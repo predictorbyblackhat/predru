@@ -3,168 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Game Predictor</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <title>Aviator / Mines / Penalty Predictor</title>
   <style>
-    .console-box {
-      font-family: monospace;
-      background-color: #1a1a1a;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 0 20px #00ff88;
-      color: #00ff88;
-      height: 250px;
-      overflow-y: auto;
+    body {
+      background:#0b0f14;
+      color:#e9edf3;
+      font-family: Arial, sans-serif;
+      display:flex; justify-content:center; align-items:center;
+      height:100vh; margin:0;
     }
-    .loading-screen {
-      font-family: monospace;
-      background: #000;
-      color: #00ff88;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
-      z-index: 50;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
+    .card{
+      background:#121a2b;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 0 20px rgba(0,255,136,.4);
+      text-align:center;
+      width:340px;
     }
-    .hidden-screen {
-      display: none;
+    .btn-game {
+      padding:12px 18px;
+      border:none;
+      border-radius:12px;
+      margin:6px;
+      cursor:pointer;
+      background:#1e293b;
+      color:#e9edf3;
+      font-weight:bold;
+      transition:0.3s;
     }
+    .btn-game:hover { background:#2d3a50; }
+    .btn-game.active { background:linear-gradient(90deg,#ff7a00,#0cb86a); color:#000; }
+    .progress {
+      display:none;
+      height:8px;
+      background:#101625;
+      border-radius:999px;
+      overflow:hidden;
+      margin:16px 0;
+    }
+    .bar {
+      height:100%; width:0;
+      background:linear-gradient(90deg,#ff7a00,#0cb86a);
+      animation: fill 2s linear forwards;
+    }
+    @keyframes fill { from{width:0} to{width:100%} }
+    .result { font-size:20px; margin-top:16px; font-weight:bold; }
+    .mines-board{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:6px;
+      margin-top:12px;
+    }
+    .cell{
+      width:40px; height:40px;
+      border-radius:6px;
+      background:#1e293b;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; color:#fff;
+    }
+    .cell.mine{ background:#ff4d4d }
   </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-  <div id="loading" class="loading-screen">
-    <p>Loading... Please wait while we set up your experience.</p>
-  </div>
+<body>
+  <div class="card">
+    <h2>🎯 Game Predictor</h2>
 
-  <div id="mainContent" class="hidden-screen">
-    <header class="w-full bg-gray-800 p-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold text-green-400">1xBet AI Predictor</h1>
-      <nav class="space-x-4">
-        <a href="#how" class="hover:text-green-400">How It Works</a>
-        <a href="#games" class="hover:text-green-400">Games</a>
-        <a href="#start" class="hover:text-green-400">Get Started</a>
-      </nav>
-    </header>
+    <!-- Кнопки выбора игры -->
+    <div>
+      <button class="btn-game active" data-game="Aviator">✈️ Aviator</button>
+      <button class="btn-game" data-game="Mines">💎 Mines</button>
+      <button class="btn-game" data-game="Penalty">⚽ Penalty</button>
+    </div>
 
-    <section id="start" class="min-h-screen flex flex-col items-center justify-center px-4 text-center">
-      <h2 class="text-3xl md:text-5xl font-bold mb-6">Earn Real Money with AI Predictions</h2>
-      <p class="max-w-xl mb-8 text-gray-300">Thousands of Sri Lankans use our AI to win in games like Aviator, Mines, and Penalty. 98% signal accuracy, real-time predictions, and fast withdrawals.</p>
+    <!-- Кнопка запуска -->
+    <button id="start" class="btn-game" style="margin-top:12px;">Get Signal</button>
 
-      <!-- Ввод ID -->
-      <input id="userId" type="text" maxlength="10" placeholder="Enter your 1xBet Account ID" class="bg-gray-700 text-white p-3 rounded-md mb-4" />
-      <button id="connectButton" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-xl text-lg transition">Connect Account</button>
+    <!-- Прогресс -->
+    <div class="progress" id="progress"><div class="bar"></div></div>
 
-      <!-- Успешное подключение -->
-      <div id="connectionSuccess" class="hidden text-green-400 font-bold mt-6">
-        <p>Account ID: <span id="accountIdDisplay"></span> connected successfully!</p>
-        <p>Status: Active | 100% Accuracy | Algorithms Analyzed</p>
-
-        <!-- Выбор игры -->
-        <div class="mt-4">
-          <label class="mr-4"><input type="radio" name="game" value="Aviator" checked> Aviator ✈️</label>
-          <label class="mr-4"><input type="radio" name="game" value="Mines"> Mines 💎</label>
-          <label><input type="radio" name="game" value="Penalty"> Penalty ⚽</label>
-        </div>
-
-        <button id="getSignalButton" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl text-lg transition mt-4">Get Signal</button>
-      </div>
-    </section>
-
-    <section id="games" class="bg-gray-800 py-12 px-6 text-center">
-      <h3 class="text-2xl font-bold text-green-400 mb-6">Compatible Games</h3>
-      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        <div class="bg-gray-700 p-6 rounded-xl shadow-lg">
-          <h4 class="text-xl font-bold mb-2">🎮 Aviator</h4>
-          <p class="text-gray-300">Predict when to cash out before the plane flies away. Our AI detects patterns in real time.</p>
-        </div>
-        <div class="bg-gray-700 p-6 rounded-xl shadow-lg">
-          <h4 class="text-xl font-bold mb-2">💎 Mines</h4>
-          <p class="text-gray-300">Find the safe spots and avoid mines. AI helps you reveal profitable paths.</p>
-        </div>
-        <div class="bg-gray-700 p-6 rounded-xl shadow-lg">
-          <h4 class="text-xl font-bold mb-2">⚽ Penalty</h4>
-          <p class="text-gray-300">Predict penalty directions and maximize your wins with AI logic.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="how" class="bg-gray-900 py-12 px-6 text-center">
-      <h3 class="text-2xl font-bold text-green-400 mb-6">How It Works</h3>
-      <div class="max-w-3xl mx-auto space-y-4 text-gray-300">
-        <p>📡 Our AI scans live data and historical results 24/7.</p>
-        <p>💡 It identifies patterns that consistently generate profits.</p>
-        <p>📲 You receive real-time predictions directly to your device.</p>
-      </div>
-    </section>
-
-    <section class="bg-black py-12 px-6 text-center">
-      <h3 class="text-xl font-bold text-green-400 mb-4">[ Console Log ]</h3>
-      <div class="console-box max-w-3xl mx-auto text-left" id="console">
-        <p>[INFO] Predictor service active ✅</p>
-      </div>
-    </section>
-
-    <footer class="text-center text-gray-500 text-sm py-6">
-      © 2025 AI Predictor. Not affiliated with 1xBet. Use responsibly.
-    </footer>
+    <!-- Результаты -->
+    <div id="signalText"></div>
+    <div id="signalValue" class="result"></div>
+    <div id="minesBoard" class="mines-board"></div>
   </div>
 
   <script>
-    // Эмуляция загрузки
-    setTimeout(() => {
-      document.getElementById("loading").classList.add("hidden-screen");
-      document.getElementById("mainContent").classList.remove("hidden-screen");
-    }, 2000);
+    const start = document.getElementById('start');
+    const progress = document.getElementById('progress');
+    const signalText = document.getElementById('signalText');
+    const signalValue = document.getElementById('signalValue');
+    const minesBoard = document.getElementById('minesBoard');
+    let selectedGame = "Aviator";
 
-    const userIdInput = document.getElementById("userId");
-    const connectButton = document.getElementById("connectButton");
-    const connectionSuccess = document.getElementById("connectionSuccess");
-    const accountIdDisplay = document.getElementById("accountIdDisplay");
-    const getSignalButton = document.getElementById("getSignalButton");
-    const consoleBox = document.getElementById("console");
-
-    // Подключение аккаунта
-    connectButton.addEventListener("click", () => {
-      const userId = userIdInput.value.trim();
-      if (userId.length === 10 && /^\d+$/.test(userId)) {
-        accountIdDisplay.innerText = userId;
-        connectionSuccess.classList.remove("hidden");
-        logConsole(`[INFO] User ${userId} connected successfully.`);
-      } else {
-        alert("Please enter a valid 10-digit Account ID.");
-      }
+    // Переключение активной кнопки
+    document.querySelectorAll('.btn-game[data-game]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.btn-game[data-game]').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedGame = btn.dataset.game;
+      });
     });
 
-    // Генерация сигналов
-    getSignalButton.addEventListener("click", () => {
-      const selectedGame = document.querySelector('input[name="game"]:checked').value;
-      let signal = "";
-
-      if (selectedGame === "Aviator") {
-        const coef = (Math.random() * (5 - 1.02) + 1.02).toFixed(2);
-        signal = `Aviator Signal: 💥 ${coef}x`;
-      } else if (selectedGame === "Mines") {
-        const safe = Math.floor(Math.random() * 20) + 5;
-        signal = `Mines Signal: ${safe} safe clicks`;
-      } else if (selectedGame === "Penalty") {
-        const dirs = ["Top Left", "Top Right", "Center", "Bottom Left", "Bottom Right"];
-        signal = `Penalty Signal: Kick → ${dirs[Math.floor(Math.random() * dirs.length)]}`;
-      }
-
-      logConsole(`[SIGNAL] ${signal}`);
-    });
-
-    function logConsole(message) {
-      const p = document.createElement("p");
-      p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-      consoleBox.appendChild(p);
-      consoleBox.scrollTop = consoleBox.scrollHeight;
+    function randomMultiplier(){ 
+      return (Math.random() * (5 - 1.01) + 1.01).toFixed(2); 
     }
+
+    function generateMinesBoard(){
+      minesBoard.innerHTML = '';
+      minesBoard.style.display = 'grid';
+      const indices = Array.from({length:25}, (_,i)=>i);
+      const mines = [];
+      while(mines.length < 5){
+        const idx = Math.floor(Math.random()*indices.length);
+        mines.push(indices.splice(idx,1)[0]);
+      }
+      for(let i=0;i<25;i++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if(mines.includes(i)){
+          cell.classList.add('mine');
+          cell.textContent = '💣';
+        }
+        minesBoard.appendChild(cell);
+      }
+    }
+
+    function generateSignal(game){
+      const now = new Date().toLocaleTimeString();
+      signalText.textContent = `🎯 [${now}] ${game}`;
+
+      if(game === 'Mines'){
+        signalValue.textContent = 'Safe moves generated';
+        generateMinesBoard();
+        return;
+      }
+
+      if(game === 'Penalty'){
+        const directions = ["Top Left","Top Right","Center","Bottom Left","Bottom Right"];
+        const dir = directions[Math.floor(Math.random()*directions.length)];
+        signalValue.textContent = `Kick → ${dir}`;
+        minesBoard.style.display = 'none';
+        return;
+      }
+
+      // Aviator
+      const multiplier = 'x' + randomMultiplier();
+      signalValue.textContent = multiplier;
+      minesBoard.style.display = 'none';
+    }
+
+    function startSignals(){
+      generateSignal(selectedGame);
+    }
+
+    start.addEventListener('click', ()=>{
+      progress.style.display = 'block';
+      const bar = progress.querySelector('.bar');
+      bar.style.animation = 'none';
+      void bar.offsetWidth;
+      bar.style.animation = 'fill 2s linear forwards';
+      setTimeout(()=>{
+        progress.style.display = 'none';
+        startSignals();
+      },2000); // 2 секунды
+    });
   </script>
 </body>
 </html>
