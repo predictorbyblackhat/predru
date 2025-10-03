@@ -218,8 +218,9 @@
   const now = new Date().toLocaleTimeString();
   signalText.textContent = `🎯 [${now}] ${game}`;
 
+  signalValue.className = ''; // очищаем классы
   if(game === 'Mines'){
-    signalValue.className = 'mines';
+    signalValue.classList.add('mines');
     signalValue.textContent = 'Safe moves generated';
     generateMinesBoard();
     return;
@@ -228,17 +229,17 @@
   if(game === 'Penalty'){
     const directions = ["Top Left","Top Right","Center","Bottom Left","Bottom Right"];
     const dir = directions[Math.floor(Math.random()*directions.length)];
-    signalValue.className = 'penalty';
+    signalValue.classList.add('penalty');
     signalValue.textContent = dir;
-    minesBoard.style.display = 'none'; // скрываем доску
+    minesBoard.style.display = 'none';
     return;
   }
 
   // Aviator
   const multiplier = 'x' + randomMultiplier();
-  signalValue.className = 'aviator';
+  signalValue.classList.add('aviator');
   signalValue.textContent = multiplier;
-  minesBoard.style.display = 'none'; // скрываем доску
+  minesBoard.style.display = 'none';
 }
 
     function startSignals(){
